@@ -8,7 +8,7 @@ import * as dbg from 'debug';
 import * as machina from 'machina';
 import * as async from 'async';
 
-import { anHourFromNow, endpoint, errors, results, SharedAccessSignature, Message } from 'azure-iot-common';
+import { anHourFromNow, endpoint, errors, results, SharedAccessSignature, Message } from '@azure-iot/azure-iot-common';
 import { Amqp as Base, AmqpMessage, SenderLink, ReceiverLink } from 'azure-iot-amqp-base';
 import { translateError } from './amqp_service_errors.js';
 import { Callback } from './interfaces';

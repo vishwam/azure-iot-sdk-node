@@ -4,12 +4,12 @@
 'use strict';
 
 import { EventEmitter } from 'events';
-import { anHourFromNow, errors, results, Message, Receiver, SharedAccessSignature } from 'azure-iot-common';
-import { RetryOperation, RetryPolicy, ExponentialBackOffWithJitter } from 'azure-iot-common';
+import { anHourFromNow, errors, results, Message, Receiver, SharedAccessSignature } from '@azure-iot/azure-iot-common';
+import { RetryOperation, RetryPolicy, ExponentialBackOffWithJitter } from '@azure-iot/azure-iot-common';
 import * as ConnectionString from './connection_string';
 import { Amqp } from './amqp';
 import { DeviceMethod } from './device_method';
-import { RestApiClient } from 'azure-iot-http-base';
+import { RestApiClient } from '@azure-iot/azure-iot-http-base';
 import { Callback, DeviceMethodParams } from './interfaces';
 
 // tslint:disable-next-line:no-var-requires
@@ -115,7 +115,7 @@ export class Client extends EventEmitter {
    * @param {String}    deviceId  The identifier of an existing device identity.
    * @param {Object}    message   The body of the message to send to the device.
    *                              If `message` is not of type
-   *                              {@link module:azure-iot-common.Message|Message},
+   *                              {@link module:@azure-iot/azure-iot-common.Message|Message},
    *                              it will be converted.
    * @param {Function}  done      The function to call when the operation is
    *                              complete. `done` will be called with two
@@ -133,7 +133,7 @@ export class Client extends EventEmitter {
     if (!message) {
       throw new ReferenceError('message is \'' + message + '\'');
     }
-    /*Codes_SRS_NODE_IOTHUB_CLIENT_05_014: [The send method shall convert the message object to type azure-iot-common.Message if necessary.]*/
+    /*Codes_SRS_NODE_IOTHUB_CLIENT_05_014: [The send method shall convert the message object to type @azure-iot/azure-iot-common.Message if necessary.]*/
     if ((<any>message.constructor).name !== 'Message') {
       message = new Message(message as Message.BufferConvertible);
     }
@@ -327,7 +327,7 @@ export class Client extends EventEmitter {
     };
 
     /*Codes_SRS_NODE_IOTHUB_CLIENT_05_004: [The fromConnectionString method shall return a new instance of the Client object, as by a call to new Client(transport).]*/
-    return new Client(new transportCtor(config), new RestApiClient(config, packageJson.name + '/' + packageJson.version));
+    return new Client(new transportCtor(config), new RestApiClient(config as any, packageJson.name + '/' + packageJson.version));
   }
 
   /**
@@ -364,7 +364,7 @@ export class Client extends EventEmitter {
     };
 
     /*Codes_SRS_NODE_IOTHUB_CLIENT_05_007: [The fromSharedAccessSignature method shall return a new instance of the Client object, as by a call to new Client(transport).]*/
-    return new Client(new transportCtor(config), new RestApiClient(config, packageJson.name + '/' + packageJson.version));
+    return new Client(new transportCtor(config), new RestApiClient(config as any, packageJson.name + '/' + packageJson.version));
   }
 }
 

@@ -3,8 +3,8 @@
 
 'use strict';
 
-import { endpoint } from 'azure-iot-common';
-import { RestApiClient } from 'azure-iot-http-base';
+import { endpoint } from '@azure-iot/azure-iot-common';
+import { RestApiClient } from '@azure-iot/azure-iot-http-base';
 import { DeviceMethodParams } from './interfaces';
 
 /**

@@ -3,10 +3,10 @@
 
 'use strict';
 
-import { anHourFromNow, endpoint } from 'azure-iot-common';
+import { anHourFromNow, endpoint } from '@azure-iot/azure-iot-common';
 import * as ConnectionString from './connection_string';
 import * as SharedAccessSignature from './shared_access_signature';
-import { RestApiClient } from 'azure-iot-http-base';
+import { RestApiClient } from '@azure-iot/azure-iot-http-base';
 import { DeviceMethod } from './device_method';
 import { Query } from './query';
 import { DeviceMethodParams } from './interfaces';

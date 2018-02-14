@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { errors } from 'azure-iot-common';
+import { errors } from '@azure-iot/azure-iot-common';
 import * as _ from 'lodash';
 import { DeviceIdentity } from './device';
 import { Registry } from './registry';

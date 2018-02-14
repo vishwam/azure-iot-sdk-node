@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { errors } from 'azure-iot-common';
+import { errors } from '@azure-iot/azure-iot-common';
 import { translateError as translateCommonError } from 'azure-iot-amqp-base';
 import { Errors as Amqp10Errors } from 'amqp10';
 
