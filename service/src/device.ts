@@ -157,6 +157,7 @@ export namespace Device {
 
   export interface Capabilities {
     iotEdge?: boolean;
+    [x: string]: any;
   }
 
   export type ConnectionState = 'connected' | 'disconnected';

@@ -50,7 +50,7 @@ export class Registry {
     /*SRS_NODE_IOTHUB_REGISTRY_16_024: [The `Registry` constructor shall use the `restApiClient` provided as a second argument if it is provided.]*/
     /*SRS_NODE_IOTHUB_REGISTRY_16_025: [The `Registry` constructor shall use `azure-iothub.RestApiClient` if no `restApiClient` argument is provided.]*/
     // This httpRequestBuilder parameter is used only for unit-testing purposes and should not be used in other situations.
-    this._restApiClient = restApiClient || new RestApiClient(config as any, packageJson.name + '/' + packageJson.version);
+    this._restApiClient = restApiClient || new RestApiClient(config, packageJson.name + '/' + packageJson.version);
   }
 
   /**
@@ -804,6 +804,7 @@ export namespace Registry {
 
     export interface DeviceDescription {
       deviceId: string;
+      capabilities?: Device.Capabilities;
       [x: string]: any;
     }
 

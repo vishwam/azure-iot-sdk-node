@@ -327,7 +327,7 @@ export class Client extends EventEmitter {
     };
 
     /*Codes_SRS_NODE_IOTHUB_CLIENT_05_004: [The fromConnectionString method shall return a new instance of the Client object, as by a call to new Client(transport).]*/
-    return new Client(new transportCtor(config), new RestApiClient(config as any, packageJson.name + '/' + packageJson.version));
+    return new Client(new transportCtor(config), new RestApiClient(config, packageJson.name + '/' + packageJson.version));
   }
 
   /**
@@ -364,7 +364,7 @@ export class Client extends EventEmitter {
     };
 
     /*Codes_SRS_NODE_IOTHUB_CLIENT_05_007: [The fromSharedAccessSignature method shall return a new instance of the Client object, as by a call to new Client(transport).]*/
-    return new Client(new transportCtor(config), new RestApiClient(config as any, packageJson.name + '/' + packageJson.version));
+    return new Client(new transportCtor(config), new RestApiClient(config, packageJson.name + '/' + packageJson.version));
   }
 }
 
