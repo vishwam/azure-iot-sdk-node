@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { anHourFromNow, errors, SharedAccessSignature, X509 } from 'azure-iot-common';
+import { anHourFromNow, errors, SharedAccessSignature, X509 } from '@azure-iot/azure-iot-common';
 import { Http as HttpBase } from './http';
 import  * as uuid from 'uuid';
 import { ClientRequest } from 'http';
