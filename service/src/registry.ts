@@ -480,6 +480,36 @@ export class Registry {
   }
 
   /**
+   * @method              module:azure-iothub.Registry#getTwin
+   * @description         Gets the Device Twin of the device with the specified device identifier.
+   * @param {String}      deviceId   The device identifier.
+   * @param {Function}    done       The callback that will be called with either an Error object or
+   *                                 the device twin instance.
+   */
+  getModuleTwin(deviceId: string, moduleId: string, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_019: [The `getTwin` method shall throw a `ReferenceError` if the `deviceId` parameter is falsy.]*/
+    if (!deviceId) throw new ReferenceError('the \'deviceId\' cannot be falsy');
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_020: [The `getTwin` method shall throw a `ReferenceError` if the `done` parameter is falsy.]*/
+    if (!done) throw new ReferenceError('the \'done\' argument cannot be falsy');
+
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_049: [The `getTwin` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    GET /twins/<encodeURIComponent(deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <config.sharedAccessSignature>
+    Request-Id: <guid>
+    ```]*/
+    const path = `/twins/${encodeURIComponent(deviceId)}/modules/${encodeURIComponent(moduleId)}${endpoint.versionQueryString()}`;
+    this._restApiClient.executeApiCall('GET', path, null, null, (err, newTwin, response) => {
+      if (err) {
+        done(err);
+      } else {
+        /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_036: [The `getTwin` method shall call the `done` callback with a `Twin` object updated with the latest property values stored in the IoT Hub service.]*/
+        done(null, new Twin(newTwin, this), response);
+      }
+    });
+  }
+
+  /**
    * @method              module:azure-iothub.Registry#updateTwin
    * @description         Updates the Device Twin of a specific device with the given patch.
    * @param {String}      deviceId   The device identifier.
@@ -508,6 +538,50 @@ export class Registry {
     <patch>
     ```]*/
     const path = '/twins/' + encodeURIComponent(deviceId) + endpoint.versionQueryString();
+    const headers = {
+      'Content-Type': 'application/json; charset=utf-8',
+      'If-Match': etag
+    };
+
+    this._restApiClient.executeApiCall('PATCH', path, headers, patch, (err, newTwin, response) => {
+      if (err) {
+        done(err);
+      } else {
+        /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_050: [The `updateTwin` method shall call the `done` callback with a `Twin` object updated with the latest property values stored in the IoT Hub service.]*/
+        done(null, new Twin(newTwin, this), response);
+      }
+    });
+  }
+
+  /**
+   * @method              module:azure-iothub.Registry#updateTwin
+   * @description         Updates the Device Twin of a specific device with the given patch.
+   * @param {String}      deviceId   The device identifier.
+   * @param {Object}      patch      The desired properties and tags to patch the device twin with.
+   * @param {string}      etag       The latest etag for this device twin or '*' to force an update even if
+   *                                 the device twin has been updated since the etag was obtained.
+   * @param {Function}    done       The callback that will be called with either an Error object or
+   *                                 the device twin instance.
+   */
+  updateModuleTwin(deviceId: string, moduleId: string, patch: any, etag: string, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_044: [The `updateTwin` method shall throw a `ReferenceError` if the `deviceId` argument is `undefined`, `null` or an empty string.]*/
+    if (deviceId === null || deviceId === undefined || deviceId === '') throw new ReferenceError('deviceId cannot be \'' + deviceId + '\'');
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_045: [The `updateTwin` method shall throw a `ReferenceError` if the `patch` argument is falsy.]*/
+    if (!patch) throw new ReferenceError('patch cannot be \'' + patch + '\'');
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_046: [The `updateTwin` method shall throw a `ReferenceError` if the `etag` argument is falsy.]*/
+    if (!etag) throw new ReferenceError('etag cannot be \'' + etag + '\'');
+
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_048: [The `updateTwin` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PATCH /twins/<encodeURIComponent(deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <config.sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    Request-Id: <guid>
+    If-Match: <etag>
+
+    <patch>
+    ```]*/
+    const path = `/twins/${encodeURIComponent(deviceId)}/modules/${encodeURIComponent(moduleId)}${endpoint.versionQueryString()}`;
     const headers = {
       'Content-Type': 'application/json; charset=utf-8',
       'If-Match': etag
@@ -554,6 +628,211 @@ export class Registry {
   getRegistryStatistics(done: Callback<Registry.RegistryStatistics>): void {
     const path = '/statistics/devices' + endpoint.versionQueryString();
     this._restApiClient.executeApiCall('GET', path, {}, null, done);
+  }
+
+  applyConfigurationContentOnDevice(deviceId: string, content: Device.ConfigurationContent, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+    const path = `/devices/${encodeURIComponent(deviceId)}/applyConfigurationContent${endpoint.versionQueryString()}`;
+    const httpHeaders = {
+      'Content-Type': 'application/json; charset=utf-8'
+    };
+
+    this._restApiClient.executeApiCall('POST', path, httpHeaders, content, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  addConfiguration(configuration: Device.Configuration, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+    const path = `/configurations/${encodeURIComponent(configuration.id)}${endpoint.versionQueryString()}`;
+    const httpHeaders = {
+      'Content-Type': 'application/json; charset=utf-8'
+    };
+
+    this._restApiClient.executeApiCall('PUT', path, httpHeaders, configuration, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  updateConfiguration(configuration: Device.Configuration, done: Registry.ResponseCallback): void;
+  updateConfiguration(configuration: Device.Configuration, forceUpdate: boolean, done: Registry.ResponseCallback): void;
+  updateConfiguration(configuration: Device.Configuration, forceUpdateOrDone: boolean | Registry.ResponseCallback, done?: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+
+    let forceUpdate: boolean;
+    if (typeof(forceUpdateOrDone) === 'function') {
+      forceUpdate = false;
+      done = forceUpdateOrDone;
+    } else {
+      forceUpdate = forceUpdateOrDone;
+    }
+
+    if (done == null) {
+      throw new ArgumentError('Argument \'done\' is missing');
+    }
+
+    if (!forceUpdate && configuration.etag == null) {
+      throw new ArgumentError('The ETag should be set while updating the Device.Configuration.');
+    }
+
+    const path = `/configurations/${encodeURIComponent(configuration.id)}${endpoint.versionQueryString()}`;
+    const httpHeaders = {
+      'Content-Type': 'application/json; charset=utf-8',
+      'If-Match': forceUpdate ? '*' : encodeURIComponent(configuration.etag)
+    };
+
+    this._restApiClient.executeApiCall('PUT', path, httpHeaders, configuration, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  removeConfiguration(configurationId: string, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+
+    const path = `/configurations/${encodeURIComponent(configurationId)}${endpoint.versionQueryString()}`;
+    const httpHeaders = {
+      'If-Match': '*'
+    };
+
+    this._restApiClient.executeApiCall('DELETE', path, httpHeaders, null, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  getConfiguration(configurationId: string, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+    const path = `/configurations/${encodeURIComponent(configurationId)}${endpoint.versionQueryString()}`;
+    this._restApiClient.executeApiCall('GET', path, null, null, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  getConfigurations(done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+    const path = `/configurations${endpoint.versionQueryString()}`;
+    this._restApiClient.executeApiCall('GET', path, null, null, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  getModulesOnDevice(deviceId: string, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+    const path = `/devices/${encodeURIComponent(deviceId)}/modules${endpoint.versionQueryString()}`;
+    this._restApiClient.executeApiCall('GET', path, null, null, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  getModule(deviceId: string, moduleId: string, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+    const path = `/devices/${encodeURIComponent(deviceId)}/modules/${encodeURIComponent(moduleId)}${endpoint.versionQueryString()}`;
+    this._restApiClient.executeApiCall('GET', path, null, null, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
   }
 
   private _bulkOperation(devices: Registry.DeviceDescription[], done: Callback<any>): void {
