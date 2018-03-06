@@ -8,8 +8,10 @@ import { RestApiClient } from '@azure-iot/azure-iot-http-base';
 import * as ConnectionString from './connection_string';
 import { Twin } from './twin';
 import { Query } from './query';
+import { Configuration, ConfigurationContent } from './configuration';
 import { Device } from './device';
 import { Callback } from './interfaces';
+import { Module } from './module';
 
 // tslint:disable-next-line:no-var-requires
 const packageJson = require('../package.json');
@@ -630,7 +632,7 @@ export class Registry {
     this._restApiClient.executeApiCall('GET', path, {}, null, done);
   }
 
-  applyConfigurationContentOnDevice(deviceId: string, content: Device.ConfigurationContent, done: Registry.ResponseCallback): void {
+  applyConfigurationContentOnDevice(deviceId: string, content: ConfigurationContent, done: Registry.ResponseCallback): void {
     /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
     ```
     PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
@@ -655,7 +657,7 @@ export class Registry {
     });
   }
 
-  addConfiguration(configuration: Device.Configuration, done: Registry.ResponseCallback): void {
+  addConfiguration(configuration: Configuration, done: Registry.ResponseCallback): void {
     /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
     ```
     PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
@@ -680,9 +682,9 @@ export class Registry {
     });
   }
 
-  updateConfiguration(configuration: Device.Configuration, done: Registry.ResponseCallback): void;
-  updateConfiguration(configuration: Device.Configuration, forceUpdate: boolean, done: Registry.ResponseCallback): void;
-  updateConfiguration(configuration: Device.Configuration, forceUpdateOrDone: boolean | Registry.ResponseCallback, done?: Registry.ResponseCallback): void {
+  updateConfiguration(configuration: Configuration, done: Registry.ResponseCallback): void;
+  updateConfiguration(configuration: Configuration, forceUpdate: boolean, done: Registry.ResponseCallback): void;
+  updateConfiguration(configuration: Configuration, forceUpdateOrDone: boolean | Registry.ResponseCallback, done?: Registry.ResponseCallback): void {
     /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
     ```
     PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
@@ -707,7 +709,7 @@ export class Registry {
     }
 
     if (!forceUpdate && configuration.etag == null) {
-      throw new ArgumentError('The ETag should be set while updating the Device.Configuration.');
+      throw new ArgumentError('The ETag should be set while updating the Configuration.');
     }
 
     const path = `/configurations/${encodeURIComponent(configuration.id)}${endpoint.versionQueryString()}`;
@@ -826,6 +828,108 @@ export class Registry {
     <deviceInfo>
     ```]*/
     const path = `/devices/${encodeURIComponent(deviceId)}/modules/${encodeURIComponent(moduleId)}${endpoint.versionQueryString()}`;
+    this._restApiClient.executeApiCall('GET', path, null, null, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  addModule(module: Module, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+
+    const preparedModule = JSON.parse(JSON.stringify(module));
+    this._normalizeAuthentication(preparedModule);
+
+    const path = `/devices/${encodeURIComponent(preparedModule.deviceId)}/modules/${encodeURIComponent(preparedModule.moduleId)}${endpoint.versionQueryString()}`;
+    const httpHeaders = {
+      'Content-Type': 'application/json; charset=utf-8'
+    };
+
+    this._restApiClient.executeApiCall('PUT', path, httpHeaders, preparedModule, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  updateModule(module: Module, done: Registry.ResponseCallback): void;
+  updateModule(module: Module, forceUpdate: boolean, done: Registry.ResponseCallback): void;
+  updateModule(module: Module, forceUpdateOrDone: boolean | Registry.ResponseCallback, done?: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+
+    let forceUpdate: boolean;
+    if (typeof(forceUpdateOrDone) === 'function') {
+      forceUpdate = false;
+      done = forceUpdateOrDone;
+    } else {
+      forceUpdate = forceUpdateOrDone;
+    }
+
+    if (done == null) {
+      throw new ArgumentError('Argument \'done\' is missing');
+    }
+
+    if (!forceUpdate && module.etag == null) {
+      throw new ArgumentError('The ETag should be set while updating the Module.');
+    }
+
+    const preparedModule = JSON.parse(JSON.stringify(module));
+    this._normalizeAuthentication(preparedModule);
+
+    const path = `/devices/${encodeURIComponent(preparedModule.deviceId)}/modules/${encodeURIComponent(preparedModule.moduleId)}${endpoint.versionQueryString()}`;
+    const httpHeaders = {
+      'Content-Type': 'application/json; charset=utf-8',
+      'If-Match': forceUpdate ? '*' : encodeURIComponent(preparedModule.etag)
+    };
+
+    this._restApiClient.executeApiCall('PUT', path, httpHeaders, preparedModule, (err, body, httpResponse) => {
+      if (err) {
+        done(err);
+      } else {
+        done(null, body, httpResponse);
+      }
+    });
+  }
+
+  removeModule(deviceId: string, moduleId: string, done: Registry.ResponseCallback): void {
+    /*Codes_SRS_NODE_IOTHUB_REGISTRY_16_026: [The `create` method shall construct an HTTP request using information supplied by the caller, as follows:
+    ```
+    PUT /devices/<encodeURIComponent(deviceInfo.deviceId)>?api-version=<version> HTTP/1.1
+    Authorization: <sharedAccessSignature>
+    Content-Type: application/json; charset=utf-8
+    If-Match: *
+    Request-Id: <guid>
+
+    <deviceInfo>
+    ```]*/
+    const path = `/devices/${encodeURIComponent(deviceId)}/modules/${encodeURIComponent(moduleId)}${endpoint.versionQueryString()}`;
+    const httpHeaders = {
+      'If-Match': '*'
+    };
+
     this._restApiClient.executeApiCall('GET', path, null, null, (err, body, httpResponse) => {
       if (err) {
         done(err);
